@@ -2,7 +2,7 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['obcsaid']==0)) {
+if (empty($_SESSION['obcsaid'])) {
   header('location:logout.php');
   exit();
   } else{

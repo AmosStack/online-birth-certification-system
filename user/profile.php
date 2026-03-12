@@ -2,8 +2,9 @@
 session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
-if (strlen($_SESSION['obcsuid']==0)) {
+if (empty($_SESSION['obcsuid'])) {
   header('location:logout.php');
+  exit();
   } else{
     if(isset($_POST['submit']))
   {

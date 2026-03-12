@@ -90,7 +90,7 @@ foreach ($results as $row) { ?>
 </html>
 <?php
 $html = ob_get_clean();
-$dompdf = new Dompdf\Dompdf();
+$dompdf = new \Dompdf\Dompdf();
 $dompdf->setPaper('A4', 'landscape');
 $dompdf->load_html($html);
 $dompdf->render();
