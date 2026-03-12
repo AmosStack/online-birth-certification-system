@@ -150,16 +150,15 @@ include('includes/dbconnection.php');
 if(isset($_POST['search']))
 { 
 
-$regmob=$_POST['regmob'];
-$certificateno=$_POST['certificateno'];
+$regmob=trim($_POST['regmob']);
+$certificateno=trim($_POST['certificateno']);
   ?>
-  <h4 align="center">Result against Reg Mobile no. <?php echo $regmob;?> and Certificate no. <?php echo $certificateno;?>  </h4>
+  <h4 align="center">Result against Reg Mobile no. <?php echo obcs_escape($regmob);?> and Certificate no. <?php echo obcs_escape($certificateno);?>  </h4>
                                                                         <h3 align="center">Certificate of Birth</h3>
                                         <hr />
                                         <p align="left">This is to certify that the following information has been taken from the original record of Birth.</p>
                                        
 <?php
-$vid=$_GET['viewid'];
 $sql="SELECT tblapplication.*,tbluser.FirstName,tbluser.LastName,tbluser.MobileNumber,tbluser.Address from  tblapplication join  tbluser on tblapplication.UserID=tbluser.ID where tbluser.MobileNumber=:regmob and  tblapplication.ApplicationID=:certificateno";
 $query = $dbh -> prepare($sql);
 $query-> bindParam(':regmob', $regmob, PDO::PARAM_STR);
@@ -174,52 +173,52 @@ $certgendate=$row->UpdationDate;            ?>
 
 <tr align="center">
 <td colspan="4" >
-<strong> Application Number:</strong>   <?php  echo $row->ApplicationID;?></td></tr>
+<strong> Application Number:</strong>   <?php  echo obcs_escape($row->ApplicationID);?></td></tr>
 
 
     <th scope>Full Name</th>
-    <td><?php  echo $row->FullName;?></td>
+    <td><?php  echo obcs_escape($row->FullName);?></td>
     <th scope>Gender</th>
-    <td><?php  echo $row->Gender;?></td>
+    <td><?php  echo obcs_escape($row->Gender);?></td>
   </tr>
    <tr>
     <th scope>Date of Birth</th>
-    <td><?php  echo $row->DateofBirth;?></td>
+    <td><?php  echo obcs_escape($row->DateofBirth);?></td>
     <th scope>Place of Birth</th>
-    <td><?php  echo $row->PlaceofBirth;?></td>
+    <td><?php  echo obcs_escape($row->PlaceofBirth);?></td>
   </tr>
   <tr>
      <th scope>Name of Mother</th>
-    <td><?php  echo $row->NameOfMother;?></td>
+    <td><?php  echo obcs_escape($row->NameOfMother);?></td>
     <th scope>Name of Father</th>
-    <td><?php  echo $row->NameofFather;?></td>
+    <td><?php  echo obcs_escape($row->NameofFather);?></td>
   
   </tr>
    <tr>
     <th scope>Permanent Address</th>
-  <td><?php  echo $row->PermanentAdd;?></td>
+  <td><?php  echo obcs_escape($row->PermanentAdd);?></td>
     <th scope>Postal Address</th>
-    <td><?php  echo $row->PostalAdd;?></td>
+    <td><?php  echo obcs_escape($row->PostalAdd);?></td>
 
   </tr>
    <tr>
         <th scope>Mobile Number</th>
-    <td><?php  echo $row->MobileNumber;?></td>
+    <td><?php  echo obcs_escape($row->MobileNumber);?></td>
     <th scope>Email</th>
-    <td><?php  echo $row->Email;?></td>
+    <td><?php  echo obcs_escape($row->Email);?></td>
 
   </tr>
    <tr>
 
     <th scope>Date of apply</th>
-    <td><?php  echo $row->Dateofapply;?></td>
+    <td><?php  echo obcs_escape($row->Dateofapply);?></td>
   </tr>
  
   <?php }?>
 </table>
           
           <p align="left"><b>Certificate Genration Date :</b> <?php echo htmlentities($certgendate);?></p>
-   <a href="download-certificate.php?cid=<?php  echo $row->ApplicationID;?>" class="btn btn-danger">Download Certificate</a>                        
+  <a href="download-certificate.php?cid=<?php  echo urlencode($row->ApplicationID);?>" class="btn btn-danger">Download Certificate</a>                        
       </div></div>
   <?php } ?>
                                     </div>

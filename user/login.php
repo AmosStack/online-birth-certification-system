@@ -5,22 +5,27 @@ include('includes/dbconnection.php');
 
 if(isset($_POST['login'])) 
   {
-    $mobno=$_POST['mobno'];
-    $password=md5($_POST['password']);
-    $sql ="SELECT ID FROM tbluser WHERE MobileNumber=:mobno and Password=:password";
+  $mobno=trim($_POST['mobno']);
+  $password=$_POST['password'];
+  $sql ="SELECT ID, Password FROM tbluser WHERE MobileNumber=:mobno";
     $query=$dbh->prepare($sql);
     $query->bindParam(':mobno',$mobno,PDO::PARAM_STR);
-$query-> bindParam(':password', $password, PDO::PARAM_STR);
     $query-> execute();
-    $results=$query->fetchAll(PDO::FETCH_OBJ);
-    if($query->rowCount() > 0)
+  $user=$query->fetch(PDO::FETCH_OBJ);
+  if($user && obcs_verify_password($password, $user->Password))
 {
-foreach ($results as $result) {
-$_SESSION['obcsuid']=$result->ID;
+session_regenerate_id(true);
+$_SESSION['obcsuid']=$user->ID;
+
+if (obcs_password_needs_upgrade($user->Password)) {
+$newPasswordHash = obcs_hash_password($password);
+$upgradeQuery = $dbh->prepare("UPDATE tbluser SET Password=:password WHERE ID=:id");
+$upgradeQuery->bindParam(':password', $newPasswordHash, PDO::PARAM_STR);
+$upgradeQuery->bindParam(':id', $user->ID, PDO::PARAM_INT);
+$upgradeQuery->execute();
 }
 
-
-$_SESSION['login']=$_POST['mobno'];
+$_SESSION['login']=$mobno;
 echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
 } else{
 echo "<script>alert('Invalid Details');</script>";

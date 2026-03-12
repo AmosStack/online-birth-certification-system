@@ -3,36 +3,39 @@ session_start();
 error_reporting(0);
 include('includes/dbconnection.php');
 
+if (isset($_COOKIE['userpassword'])) {
+setcookie('userpassword', '', time() - 3600, '/', '', false, true);
+}
+
 if(isset($_POST['login'])) 
   {
-    $username=$_POST['username'];
-    $password=md5($_POST['password']);
-    $sql ="SELECT ID FROM tbladmin WHERE UserName=:username and Password=:password";
+    $username=trim($_POST['username']);
+    $password=$_POST['password'];
+    $sql ="SELECT ID, Password FROM tbladmin WHERE UserName=:username";
     $query=$dbh->prepare($sql);
     $query-> bindParam(':username', $username, PDO::PARAM_STR);
-$query-> bindParam(':password', $password, PDO::PARAM_STR);
     $query-> execute();
-    $results=$query->fetchAll(PDO::FETCH_OBJ);
-    if($query->rowCount() > 0)
+    $admin=$query->fetch(PDO::FETCH_OBJ);
+    if($admin && obcs_verify_password($password, $admin->Password))
 {
-foreach ($results as $result) {
-$_SESSION['obcsaid']=$result->ID;
+session_regenerate_id(true);
+$_SESSION['obcsaid']=$admin->ID;
+
+if (obcs_password_needs_upgrade($admin->Password)) {
+$newPasswordHash = obcs_hash_password($password);
+$upgradeQuery = $dbh->prepare("UPDATE tbladmin SET Password=:password WHERE ID=:id");
+$upgradeQuery->bindParam(':password', $newPasswordHash, PDO::PARAM_STR);
+$upgradeQuery->bindParam(':id', $admin->ID, PDO::PARAM_INT);
+$upgradeQuery->execute();
 }
 
   if(!empty($_POST["remember"])) {
-//COOKIES for username
-setcookie ("user_login",$_POST["username"],time()+ (10 * 365 * 24 * 60 * 60));
-//COOKIES for password
-setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
+setcookie("user_login", $username, time() + (30 * 24 * 60 * 60), '/', '', false, true);
 } else {
-if(isset($_COOKIE["user_login"])) {
-setcookie ("user_login","");
-if(isset($_COOKIE["userpassword"])) {
-setcookie ("userpassword","");
-        }
-      }
+setcookie("user_login", '', time() - 3600, '/', '', false, true);
 }
-$_SESSION['login']=$_POST['username'];
+
+$_SESSION['login']=$username;
 echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
 } else{
 echo "<script>alert('Invalid Details');</script>";
@@ -124,7 +127,7 @@ echo "<script>alert('Invalid Details');</script>";
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input type="text" placeholder="User Name" required="true" name="username" value="<?php if(isset($_COOKIE["user_login"])) { echo $_COOKIE["user_login"]; } ?>" >
+                                                <input type="text" placeholder="User Name" required="true" name="username" value="<?php if(isset($_COOKIE["user_login"])) { echo obcs_escape($_COOKIE["user_login"]); } ?>" >
                                                 <i class="fa fa-user login-user" aria-hidden="true"></i>
                                             </div>
                                         </div>
@@ -137,7 +140,7 @@ echo "<script>alert('Invalid Details');</script>";
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input type="password" placeholder="Password" name="password" required="true" value="<?php if(isset($_COOKIE["userpassword"])) { echo $_COOKIE["userpassword"]; } ?>">
+                                                <input type="password" placeholder="Password" name="password" required="true">
                                                 <i class="fa fa-lock login-user"></i>
                                             </div>
                                             <div class="row">

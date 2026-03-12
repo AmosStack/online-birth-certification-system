@@ -5,9 +5,9 @@ include('includes/dbconnection.php');
 
 if(isset($_POST['submit']))
   {
-    $email=$_POST['email'];
-$mobile=$_POST['mobile'];
-$newpassword=md5($_POST['newpassword']);
+    $email=trim($_POST['email']);
+$mobile=trim($_POST['mobile']);
+$newpassword=obcs_hash_password($_POST['newpassword']);
   $sql ="SELECT Email FROM tbladmin WHERE Email=:email and MobileNumber=:mobile";
 $query= $dbh -> prepare($sql);
 $query-> bindParam(':email', $email, PDO::PARAM_STR);
@@ -152,7 +152,7 @@ return true;
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input type="password" name="newpassword" placeholder="New Password" required="true"/>
+                                                <input type="password" name="newpassword" placeholder="New Password" minlength="8" required="true"/>
                                                 <i class="fa fa-lock login-user" aria-hidden="true"></i>
                                             </div>
                                         </div>
@@ -165,7 +165,7 @@ return true;
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input class="form-control" type="password" name="confirmpassword" placeholder="Confirm Password" required="true" />
+                                                <input class="form-control" type="password" name="confirmpassword" placeholder="Confirm Password" minlength="8" required="true" />
                                                 <i class="fa fa-lock login-user" aria-hidden="true"></i>
                                             </div>
                                         </div>

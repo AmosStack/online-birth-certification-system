@@ -4,12 +4,14 @@ error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['obcsaid']==0)) {
   header('location:logout.php');
+  exit();
   } else{
 
-if($_GET['del']){
-$appid=$_GET['del'];
-$sql= "delete from tblapplication where ID='$appid'";
+if(isset($_GET['del'])){
+$appid=(int)$_GET['del'];
+$sql= "delete from tblapplication where ID=:id";
 $query=$dbh->prepare($sql);
+$query->bindParam(':id', $appid, PDO::PARAM_INT);
 $query->execute();
 echo "<script>alert('Data Deleted');</script>";
 echo "<script>window.location.href='all-applications.php'</script>";

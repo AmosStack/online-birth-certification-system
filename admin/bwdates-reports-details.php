@@ -118,7 +118,7 @@ $fdate=$_POST['fromdate'];
 $tdate=$_POST['todate'];
 
 ?>
-<h4 align="center" style="color:blue">Report from <?php echo $fdate?> to <?php echo $tdate?></h4>
+<h4 align="center" style="color:blue">Report from <?php echo obcs_escape($fdate)?> to <?php echo obcs_escape($tdate)?></h4>
                                         <table id="table" data-toggle="table" data-pagination="true" data-search="true" data-show-columns="true" data-show-pagination-switch="true" data-show-refresh="true" data-key-events="true" data-show-toggle="true" data-resizable="true" data-cookie="true" data-cookie-id-table="saveId" data-show-export="true" data-click-to-select="true" data-toolbar="#toolbar">
                                             <thead>
                                                 <tr>
@@ -137,9 +137,11 @@ $tdate=$_POST['todate'];
                                              
                                               <?php
                                           
-$sql="SELECT * from tblapplication where date(Dateofapply) between '$fdate' and '$tdate'";
+$sql="SELECT * from tblapplication where date(Dateofapply) between :fromdate and :todate";
 
 $query = $dbh -> prepare($sql);
+$query->bindParam(':fromdate', $fdate, PDO::PARAM_STR);
+$query->bindParam(':todate', $tdate, PDO::PARAM_STR);
 $query->execute();
 $results=$query->fetchAll(PDO::FETCH_OBJ);
 

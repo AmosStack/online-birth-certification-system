@@ -142,9 +142,10 @@ if (strlen($_SESSION['obcsaid']==0)) {
 if(isset($_POST['search']))
 { 
 
-$sdata=$_POST['searchdata'];
+$sdata=trim($_POST['searchdata']);
+$searchTerm=$sdata.'%';
   ?>
-  <h4 align="center">Result against "<?php echo $sdata;?>" keyword </h4>
+  <h4 align="center">Result against "<?php echo obcs_escape($sdata);?>" keyword </h4>
                                         <table id="table" data-toggle="table" data-pagination="true" data-search="true" data-show-columns="true" data-show-pagination-switch="true" data-show-refresh="true" data-key-events="true" data-show-toggle="true" data-resizable="true" data-cookie="true" data-cookie-id-table="saveId" data-show-export="true" data-click-to-select="true" data-toolbar="#toolbar">
                                             <thead>
                                                 <tr>
@@ -163,9 +164,10 @@ $sdata=$_POST['searchdata'];
                                              
                                               <?php
                                           
-$sql="SELECT * from tblapplication where ApplicationID like '$sdata%'  || FullName like '$sdata%' || NameofFather like '$sdata%' || NameofFather like '$sdata%'";
+$sql="SELECT * from tblapplication where ApplicationID like :searchTerm or FullName like :searchTerm or NameofFather like :searchTerm or NameOfMother like :searchTerm";
 
 $query = $dbh -> prepare($sql);
+$query->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
 $query->execute();
 $results=$query->fetchAll(PDO::FETCH_OBJ);
 

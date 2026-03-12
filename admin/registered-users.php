@@ -4,14 +4,22 @@ error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['obcsaid']==0)) {
   header('location:logout.php');
+  exit();
   } else{
 
-if($_GET['del']){
-$appid=$_GET['del'];
-$sql= "delete from tbluser where ID='$appid';
-delete from tblapplication where UserID='$appid';";
-$query=$dbh->prepare($sql);
-$query->execute();
+if(isset($_GET['del'])){
+$appid=(int)$_GET['del'];
+$dbh->beginTransaction();
+
+$deleteApplications = $dbh->prepare("DELETE FROM tblapplication WHERE UserID=:id");
+$deleteApplications->bindParam(':id', $appid, PDO::PARAM_INT);
+$deleteApplications->execute();
+
+$deleteUser = $dbh->prepare("DELETE FROM tbluser WHERE ID=:id");
+$deleteUser->bindParam(':id', $appid, PDO::PARAM_INT);
+$deleteUser->execute();
+
+$dbh->commit();
 echo "<script>alert('Data Deleted');</script>";
 echo "<script>window.location.href='registered-users.php'</script>";
 

@@ -5,9 +5,8 @@ include('includes/dbconnection.php');
 
 if(isset($_POST['submit']))
   {
-    $email=$_POST['email'];
-$mobile=$_POST['mobile'];
-$newpassword=md5($_POST['newpassword']);
+    $mobile=trim($_POST['mobile']);
+$newpassword=obcs_hash_password($_POST['newpassword']);
   $sql ="SELECT MobileNumber FROM tbluser WHERE MobileNumber=:mobile";
 $query= $dbh -> prepare($sql);
 
@@ -18,14 +17,13 @@ if($query -> rowCount() > 0)
 {
 $con="update tbluser set Password=:newpassword where MobileNumber=:mobile";
 $chngpwd1 = $dbh->prepare($con);
-$chngpwd1-> bindParam(':email', $email, PDO::PARAM_STR);
-
+$chngpwd1-> bindParam(':mobile', $mobile, PDO::PARAM_STR);
 $chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
 $chngpwd1->execute();
 echo "<script>alert('Your Password succesfully changed');</script>";
 }
 else {
-echo "<script>alert('Email id or Mobile no is invalid');</script>"; 
+echo "<script>alert('Mobile number is invalid');</script>"; 
 }
 }
 
@@ -139,7 +137,7 @@ return true;
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input type="password" name="newpassword" placeholder="New Password" required="true"/>
+                                                <input type="password" name="newpassword" placeholder="New Password" minlength="8" required="true"/>
                                                 <i class="fa fa-lock login-user" aria-hidden="true"></i>
                                             </div>
                                         </div>
@@ -152,7 +150,7 @@ return true;
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input class="form-control" type="password" name="confirmpassword" placeholder="Confirm Password" required="true" />
+                                                <input class="form-control" type="password" name="confirmpassword" placeholder="Confirm Password" minlength="8" required="true" />
                                                 <i class="fa fa-lock login-user" aria-hidden="true"></i>
                                             </div>
                                         </div>

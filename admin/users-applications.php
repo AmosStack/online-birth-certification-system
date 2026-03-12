@@ -4,6 +4,7 @@ error_reporting(0);
 include('includes/dbconnection.php');
 if (strlen($_SESSION['obcsaid']==0)) {
   header('location:logout.php');
+  exit();
   } else{
 
 
@@ -96,7 +97,7 @@ if (strlen($_SESSION['obcsaid']==0)) {
                             <div class="sparkline13-list shadow-reset">
                                 <div class="sparkline13-hd">
                                     <div class="main-sparkline13-hd">
-                                        <h1>Applications Applied by <?php echo $_GET['fname'];?></h1>
+                                        <h1>Applications Applied by <?php echo isset($_GET['fname']) ? obcs_escape($_GET['fname']) : ''; ?></h1>
                                         <div class="sparkline13-outline-icon">
                                             <span class="sparkline13-collapse-link"><i class="fa fa-chevron-up"></i></span>
                                             <span><i class="fa fa-wrench"></i></span>
@@ -130,9 +131,10 @@ if (strlen($_SESSION['obcsaid']==0)) {
                                                
                                              
                                               <?php
-$uid=$_GET['userid'];                                        
-$sql="SELECT * from tblapplication where UserID='$uid'";
+$uid=isset($_GET['userid']) ? (int)$_GET['userid'] : 0;
+$sql="SELECT * from tblapplication where UserID=:uid";
 $query = $dbh -> prepare($sql);
+$query->bindParam(':uid', $uid, PDO::PARAM_INT);
 $query->execute();
 $results=$query->fetchAll(PDO::FETCH_OBJ);
 

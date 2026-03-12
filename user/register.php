@@ -4,11 +4,11 @@ error_reporting(0);
 include('includes/dbconnection.php');
 if(isset($_POST['submit']))
   {
-    $fname=$_POST['fname'];
-    $lname=$_POST['lname'];
-    $mobno=$_POST['mobno'];
-    $add=$_POST['address'];
-    $password=md5($_POST['password']);
+        $fname=trim($_POST['fname']);
+        $lname=trim($_POST['lname']);
+        $mobno=trim($_POST['mobno']);
+        $add=trim($_POST['address']);
+        $password=obcs_hash_password($_POST['password']);
     $ret="select MobileNumber from tbluser where MobileNumber=:mobno";
     $query= $dbh -> prepare($ret);
     $query-> bindParam(':mobno', $mobno, PDO::PARAM_STR);
@@ -178,7 +178,7 @@ echo "<script>alert('This Mobile Number already exist. Please try again');</scri
                                         </div>
                                         <div class="col-lg-8">
                                             <div class="login-input-area">
-                                                <input type="password" name="password" required="true" />
+                                                <input type="password" name="password" minlength="8" required="true" />
                                                 <i class="fa fa-lock login-user"></i>
                                             </div>
                                         </div>

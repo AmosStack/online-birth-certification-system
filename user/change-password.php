@@ -5,20 +5,20 @@ include('includes/dbconnection.php');
 error_reporting(0);
 if (strlen($_SESSION['obcsuid']==0)) {
   header('location:logout.php');
+  exit();
   } else{
 if(isset($_POST['submit']))
 {
 $uid=$_SESSION['obcsuid'];
-$cpassword=md5($_POST['currentpassword']);
-$newpassword=md5($_POST['newpassword']);
-$sql ="SELECT ID FROM tbluser WHERE ID=:uid and Password=:cpassword";
+$cpassword=$_POST['currentpassword'];
+$newpassword=obcs_hash_password($_POST['newpassword']);
+$sql ="SELECT Password FROM tbluser WHERE ID=:uid";
 $query= $dbh -> prepare($sql);
 $query-> bindParam(':uid', $uid, PDO::PARAM_STR);
-$query-> bindParam(':cpassword', $cpassword, PDO::PARAM_STR);
 $query-> execute();
-$results = $query -> fetchAll(PDO::FETCH_OBJ);
+$result = $query->fetch(PDO::FETCH_OBJ);
 
-if($query -> rowCount() > 0)
+if($result && obcs_verify_password($cpassword, $result->Password))
 {
 $con="update tbluser set Password=:newpassword where ID=:uid";
 $chngpwd1 = $dbh->prepare($con);
@@ -167,7 +167,7 @@ return true;
                                                                     <label class="login2 pull-right pull-right-pro">New Password:</label>
                                                                 </div>
                                                                 <div class="col-lg-9">
-                                                                     <input type="password" class="form-control" name="newpassword"  class="form-control" required="true">
+                                                                     <input type="password" class="form-control" name="newpassword"  class="form-control" minlength="8" required="true">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -177,7 +177,7 @@ return true;
                                                                     <label class="login2 pull-right pull-right-pro">Confirm Password:</label>
                                                                 </div>
                                                                 <div class="col-lg-9">
-                                                                    <input type="password" class="form-control"  name="confirmpassword" id="confirmpassword"  required='true'>
+                                                                    <input type="password" class="form-control"  name="confirmpassword" id="confirmpassword" minlength="8" required='true'>
                                                                 </div>
                                                             </div>
                                                         </div>
