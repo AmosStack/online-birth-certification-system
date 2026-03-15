@@ -1,11 +1,15 @@
 <?php
-session_start();
-error_reporting(0);
-include('includes/dbconnection.php');
-if (empty($_SESSION['obcsuid'])) {
-  header('location:logout.php');
-  exit();
-} else {
+declare(strict_types=1);
+
+require_once __DIR__ . '/dbconnection.php';
+
+obcs_require_user();
+
+$uid = (int) $_SESSION['obcsuid'];
+$query = $dbh->prepare('SELECT FirstName, LastName, MobileNumber FROM tbluser WHERE ID = :uid LIMIT 1');
+$query->bindParam(':uid', $uid, PDO::PARAM_INT);
+$query->execute();
+$user = $query->fetch();
 ?>
 <div class="content-inner-all">
     <div class="header-top-area">
@@ -32,22 +36,11 @@ if (empty($_SESSION['obcsuid'])) {
                     <div class="col-lg-5 col-md-5 col-sm-6 col-xs-12">
                         <div class="header-right-info">
                             <ul class="nav navbar-nav mai-top-nav header-right-menu">
-                                <?php
-                                $uid = $_SESSION['obcsuid'];
-                                $sql = "SELECT FirstName,LastName,MobileNumber from tbluser where ID=:uid";
-                                $query = $dbh->prepare($sql);
-                                $query->bindParam(':uid', $uid, PDO::PARAM_STR);
-                                $query->execute();
-                                $results = $query->fetchAll(PDO::FETCH_OBJ);
-                                $cnt = 1;
-                                if ($query->rowCount() > 0) {
-                                    foreach ($results as $row) {
-                                ?>
                                 <li class="nav-item">
                                     <a href="#" data-toggle="dropdown" role="button" aria-expanded="false" class="nav-link dropdown-toggle">
                                         <span class="adminpro-icon adminpro-user-rounded header-riht-inf"></span>
-                                        <span class="admin-name"><?php echo $row->FirstName; ?> <?php echo $row->LastName; ?></span>
-                                        <span class="author-project-icon adminpro-icon adminpro-down-arrow"></span><?php $cnt = $cnt + 1; }} ?>
+                                        <span class="admin-name"><?php echo obcs_escape($user ? $user->FirstName : 'User'); ?> <?php echo obcs_escape($user ? $user->LastName : ''); ?></span>
+                                        <span class="author-project-icon adminpro-icon adminpro-down-arrow"></span>
                                     </a>
                                     <ul role="menu" class="dropdown-header-top author-log dropdown-menu animated flipInX">
                                         <li><a href="profile.php"><span class="adminpro-icon adminpro-user-rounded author-log-ic"></span>My Profile</a>
@@ -65,4 +58,3 @@ if (empty($_SESSION['obcsuid'])) {
             </div>
         </div>
     </div>
-<?php } ?>
