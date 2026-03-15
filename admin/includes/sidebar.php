@@ -1,35 +1,23 @@
-     <?php
-session_start();
-error_reporting(0);
-include('includes/dbconnection.php');
-if (empty($_SESSION['obcsaid'])) {
-  header('location:logout.php');
-    exit();
-  } else{
+<?php
+declare(strict_types=1);
 
+require_once __DIR__ . '/dbconnection.php';
 
+obcs_require_admin();
 
-  ?>
+$aid = (int) $_SESSION['obcsaid'];
+$query = $dbh->prepare('SELECT AdminName, Email FROM tbladmin WHERE ID = :aid LIMIT 1');
+$query->bindParam(':aid', $aid, PDO::PARAM_INT);
+$query->execute();
+$admin = $query->fetch();
+?>
   <div class="left-sidebar-pro">
             <nav id="sidebar">
                 <div class="sidebar-header">
                     <a href="#"><img src="img/message/avatar.jpg" alt="" />
                     </a>
-                    <?php
-$aid=$_SESSION['obcsaid'];
-$sql="SELECT AdminName,Email from  tbladmin where ID=:aid";
-$query = $dbh -> prepare($sql);
-$query->bindParam(':aid',$aid,PDO::PARAM_STR);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
-                    <h3> <?php  echo $row->AdminName;?></h3>
-                    <p> <?php  echo $row->Email;?></p>
-                  <?php $cnt=$cnt+1;}} ?>
+                                        <h3><?php echo obcs_escape($admin ? $admin->AdminName : 'Admin');?></h3>
+                                        <p><?php echo obcs_escape($admin ? $admin->Email : '');?></p>
                 </div>
                 <div class="left-custom-menu-adp-wrap">
                     <ul class="nav navbar-nav left-sidebar-menu-pro">
@@ -67,4 +55,3 @@ foreach($results as $row)
                 </div>
             </nav>
         </div>
-        <?php }  ?>

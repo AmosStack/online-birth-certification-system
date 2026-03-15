@@ -1,47 +1,46 @@
 <?php
-session_start();
-error_reporting(0);
-include('includes/dbconnection.php');
+declare(strict_types=1);
+
+require_once __DIR__ . '/includes/dbconnection.php';
+
+obcs_session_start();
+
+$errorMessage = '';
 
 if (isset($_COOKIE['userpassword'])) {
-setcookie('userpassword', '', time() - 3600, '/', '', false, true);
+  setcookie('userpassword', '', time() - 3600, '/', '', false, true);
 }
 
-if(isset($_POST['login'])) 
-  {
-    $username=trim($_POST['username']);
-    $password=$_POST['password'];
-    $sql ="SELECT ID, Password FROM tbladmin WHERE UserName=:username";
-    $query=$dbh->prepare($sql);
-    $query-> bindParam(':username', $username, PDO::PARAM_STR);
-    $query-> execute();
-    $admin=$query->fetch(PDO::FETCH_OBJ);
-    if($admin && obcs_verify_password($password, $admin->Password))
-{
-session_regenerate_id(true);
-$_SESSION['obcsaid']=$admin->ID;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+  $username = obcs_input_string($_POST, 'username');
+  $password = (string) ($_POST['password'] ?? '');
 
-if (obcs_password_needs_upgrade($admin->Password)) {
-$newPasswordHash = obcs_hash_password($password);
-$upgradeQuery = $dbh->prepare("UPDATE tbladmin SET Password=:password WHERE ID=:id");
-$upgradeQuery->bindParam(':password', $newPasswordHash, PDO::PARAM_STR);
-$upgradeQuery->bindParam(':id', $admin->ID, PDO::PARAM_INT);
-$upgradeQuery->execute();
-}
+  $query = $dbh->prepare('SELECT ID, Password FROM tbladmin WHERE UserName = :username LIMIT 1');
+  $query->bindParam(':username', $username, PDO::PARAM_STR);
+  $query->execute();
+  $admin = $query->fetch();
 
-  if(!empty($_POST["remember"])) {
-setcookie("user_login", $username, time() + (30 * 24 * 60 * 60), '/', '', false, true);
-} else {
-setcookie("user_login", '', time() - 3600, '/', '', false, true);
-}
+  if ($admin && obcs_verify_password($password, $admin->Password)) {
+    if (obcs_password_needs_upgrade($admin->Password)) {
+      $newPasswordHash = obcs_hash_password($password);
+      $upgradeQuery = $dbh->prepare('UPDATE tbladmin SET Password = :password WHERE ID = :id');
+      $upgradeQuery->bindParam(':password', $newPasswordHash, PDO::PARAM_STR);
+      $upgradeQuery->bindParam(':id', $admin->ID, PDO::PARAM_INT);
+      $upgradeQuery->execute();
+    }
 
-$_SESSION['login']=$username;
-echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
-} else{
-echo "<script>alert('Invalid Details');</script>";
-}
-}
+    if (!empty($_POST['remember'])) {
+      setcookie('user_login', $username, time() + (30 * 24 * 60 * 60), '/', '', false, true);
+    } else {
+      setcookie('user_login', '', time() - 3600, '/', '', false, true);
+    }
 
+    obcs_login_admin((int) $admin->ID, $username);
+    obcs_redirect('dashboard.php');
+  }
+
+  $errorMessage = 'Invalid details.';
+}
 ?>
 <!doctype html>
 <html class="no-js" lang="en">
@@ -119,6 +118,15 @@ echo "<script>alert('Invalid Details');</script>";
                                             </div>
                                         </div>
                                     </div>
+                                    <?php if ($errorMessage !== ''): ?>
+                                    <div class="row">
+                                      <div class="col-lg-12">
+                                        <p style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;padding:8px 12px;border-radius:4px;font-size:13px;margin-bottom:8px;">
+                                          <?php echo obcs_escape($errorMessage); ?>
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <?php endif; ?>
                                     <div class="row">
                                         <div class="col-lg-4">
                                             <div class="login-input-head">

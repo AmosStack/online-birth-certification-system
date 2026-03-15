@@ -1,15 +1,21 @@
-      <?php
-session_start();
-error_reporting(0);
-include('includes/dbconnection.php');
-if (empty($_SESSION['obcsaid'])) {
-  header('location:logout.php');
-    exit();
-  } else{
+<?php
+declare(strict_types=1);
 
+require_once __DIR__ . '/dbconnection.php';
 
+obcs_require_admin();
 
-  ?>
+$notificationQuery = $dbh->prepare('SELECT ApplicationID, Dateofapply FROM tblapplication WHERE Status IS NULL OR Status = \'' . '\'');
+$notificationQuery->execute();
+$notifications = $notificationQuery->fetchAll();
+$totneworder = count($notifications);
+
+$aid = (int) $_SESSION['obcsaid'];
+$adminQuery = $dbh->prepare('SELECT AdminName, Email FROM tbladmin WHERE ID = :aid LIMIT 1');
+$adminQuery->bindParam(':aid', $aid, PDO::PARAM_INT);
+$adminQuery->execute();
+$admin = $adminQuery->fetch();
+?>
  <div class="content-inner-all">
             <div class="header-top-area">
                 <div class="fixed-header-top">
@@ -42,22 +48,13 @@ if (empty($_SESSION['obcsaid'])) {
                             <div class="col-lg-5 col-md-5 col-sm-6 col-xs-12">
                                 <div class="header-right-info">
                                     <ul class="nav navbar-nav mai-top-nav header-right-menu">
-                                 <?php 
-                        $sql ="SELECT * from  tblapplication where Status is null || Status=''";
-$query = $dbh -> prepare($sql);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
-$totneworder=$query->rowCount();
-?>
                                         <li class="nav-item"><a href="new-birth-application.php" data-toggle="dropdown" role="button" aria-expanded="false" class="nav-link dropdown-toggle"><i class="fa fa-bell-o" aria-hidden="true"></i><span class="indicator-nt"></span></a>
                                             <div role="menu" class="notification-author dropdown-menu animated flipInX">
                                                 <div class="notification-single-top">
-                                                    <h1>Notifications <?php echo htmlentities($totneworder);?></h1>
+                                                    <h1>Notifications <?php echo obcs_escape($totneworder);?></h1>
                                                 </div>
                                                 <ul class="notification-menu">
-                                                    <?php
-foreach($results as $row)
-{ ?>
+                                                    <?php foreach ($notifications as $row) { ?>
                                                     <li>
                                                         <a href="all-applications.php">
 
@@ -65,13 +62,13 @@ foreach($results as $row)
                                                             <div class="notification-content">
                                                                 
                                                                 
-                                                                <h2><?php echo $row->ApplicationID;?></h2>
-                                                                <p><?php echo $row->Dateofapply;?>.</p>
+                                                                <h2><?php echo obcs_escape($row->ApplicationID);?></h2>
+                                                                <p><?php echo obcs_escape($row->Dateofapply);?>.</p>
                                                                 
                                                             </div>
                                                         </a>
                                                     </li>
-                                               <?php  } ?>
+                                               <?php } ?>
                                                 </ul>
                                                 <div class="notification-view">
                                                     <a href="all-applications.php">View All Notification</a>
@@ -80,21 +77,9 @@ foreach($results as $row)
                                         </li>
                                         <li class="nav-item">
                                             <a href="#" data-toggle="dropdown" role="button" aria-expanded="false" class="nav-link dropdown-toggle">
-                                                <?php
-$aid=$_SESSION['obcsaid'];
-$sql="SELECT AdminName,Email from  tbladmin where ID=:aid";
-$query = $dbh -> prepare($sql);
-$query->bindParam(':aid',$aid,PDO::PARAM_STR);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
                                                 <span class="adminpro-icon adminpro-user-rounded header-riht-inf"></span>
-                                                <span class="admin-name"><?php  echo $row->AdminName;?></span>
-                                                <span class="author-project-icon adminpro-icon adminpro-down-arrow"></span><?php $cnt=$cnt+1;}} ?>
+                                                <span class="admin-name"><?php echo obcs_escape($admin ? $admin->AdminName : 'Admin');?></span>
+                                                <span class="author-project-icon adminpro-icon adminpro-down-arrow"></span>
                                             </a>
                                             <ul role="menu" class="dropdown-header-top author-log dropdown-menu animated flipInX">
                                                 
@@ -113,4 +98,4 @@ foreach($results as $row)
                         </div>
                     </div>
                 </div>
-            </div><?php }  ?>
+            </div>
