@@ -125,6 +125,112 @@ On successful login, the system can automatically upgrade the stored password to
 - Uses session checks before accessing protected pages
 - Passwords should never be stored in plain text
 
+## Google OAuth Setup
+
+The user login page supports "Sign in with Google". Follow these steps to enable it:
+
+### 1. Create Google OAuth credentials
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+1. Create a project or select an existing one.
+1. Navigate to **APIs & Services > Library** and enable the **Google People API**.
+1. Navigate to **APIs & Services > Credentials**.
+1. Click **Create Credentials > OAuth client ID**.
+1. Application type: **Web application**.
+1. Under **Authorised redirect URIs**, add:
+   ```
+   http://localhost/online-birth-certification-system/user/google-callback.php
+   ```
+1. Copy the **Client ID** and **Client Secret**.
+
+### 2. Configure the application
+
+Edit `user/google-config.php` and set your credentials:
+
+```php
+define('GOOGLE_CLIENT_ID',     'YOUR_GOOGLE_CLIENT_ID');
+define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
+define('GOOGLE_REDIRECT_URI',  'http://localhost/online-birth-certification-system/user/google-callback.php');
+```
+
+### 3. Add the new database columns
+
+Run this SQL once in phpMyAdmin (skip if you do a fresh import of `obcsdb.sql`):
+
+```sql
+ALTER TABLE `tbluser`
+  ADD COLUMN IF NOT EXISTS `Email`    varchar(200) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `GoogleID` varchar(255) DEFAULT NULL;
+
+ALTER TABLE `tbluser`
+  ADD UNIQUE KEY IF NOT EXISTS `uq_tbluser_google_id` (`GoogleID`);
+```
+
+### How it works
+
+| Scenario | Behaviour |
+|---|---|
+| User has signed in with Google before | Logged in using stored `GoogleID` |
+| Existing account with matching email | `GoogleID` is linked to that account and user is logged in |
+| No matching account | A new account is created using the Google profile |
+
+Google-only users have no usable password stored; they must always authenticate via Google.
+
+## Facebook OAuth Setup
+
+The user login page also supports "Continue with Facebook". Follow these steps to enable it:
+
+### 1. Create a Facebook app
+
+1. Go to the [Meta for Developers](https://developers.facebook.com/) portal.
+1. Create an app or select an existing one.
+1. Add the **Facebook Login** product to the app.
+1. In **Facebook Login > Settings**, add this valid OAuth redirect URI:
+   ```
+   http://localhost/online-birth-certification-system/user/facebook-callback.php
+   ```
+1. In **App Settings > Basic**, copy the **App ID** and **App Secret**.
+
+### 2. Configure the application
+
+Edit `user/google-config.php` and set the Facebook credentials:
+
+```php
+define('FACEBOOK_APP_ID',      'YOUR_FACEBOOK_APP_ID');
+define('FACEBOOK_APP_SECRET',  'YOUR_FACEBOOK_APP_SECRET');
+define('FACEBOOK_REDIRECT_URI', rtrim(OBCS_APP_URL, '/') . '/user/facebook-callback.php');
+```
+
+The same config file also defines:
+
+```php
+define('OBCS_APP_URL', 'http://localhost/online-birth-certification-system');
+```
+
+If you open the project from a different host or path, update `OBCS_APP_URL` so the generated redirect URI matches exactly.
+
+### 3. Add the required database column
+
+Run this SQL once in phpMyAdmin (skip if you do a fresh import of `obcsdb.sql`):
+
+```sql
+ALTER TABLE `tbluser`
+  ADD COLUMN IF NOT EXISTS `FacebookID` varchar(255) DEFAULT NULL;
+
+ALTER TABLE `tbluser`
+  ADD UNIQUE KEY IF NOT EXISTS `uq_tbluser_facebook_id` (`FacebookID`);
+```
+
+### How it works
+
+| Scenario | Behaviour |
+|---|---|
+| User has signed in with Facebook before | Logged in using stored `FacebookID` |
+| Existing account with matching email | `FacebookID` is linked to that account and user is logged in |
+| No matching account | A new account is created using the Facebook profile |
+
+Facebook-only users have no usable password stored; they must always authenticate via Facebook.
+
 ## Troubleshooting
 
 - Database connection error:

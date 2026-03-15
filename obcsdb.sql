@@ -137,3 +137,18 @@ COMMIT;
 INSERT INTO tbladmin (ID, AdminName, UserName, MobileNumber, Email, Password)
 VALUES
 (1, 'System Administrator', 'admin', 0712345678, 'admin@gmail.com', 'admin123');
+
+--
+-- Google OAuth columns for tbluser
+-- Run this block once if the database already exists (skip when doing a fresh import).
+--
+ALTER TABLE `tbluser`
+  ADD COLUMN IF NOT EXISTS `Email`    varchar(200) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `GoogleID` varchar(255) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `FacebookID` varchar(255) DEFAULT NULL;
+
+ALTER TABLE `tbluser`
+  ADD UNIQUE KEY IF NOT EXISTS `uq_tbluser_google_id` (`GoogleID`);
+
+ALTER TABLE `tbluser`
+  ADD UNIQUE KEY IF NOT EXISTS `uq_tbluser_facebook_id` (`FacebookID`);
